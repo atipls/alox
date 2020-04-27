@@ -247,7 +247,7 @@ init_rules :: proc() {
   		OR            = { nil,      nil,     .NONE },
   		PRINT         = { nil,      nil,     .NONE },
   		RETURN        = { nil,      nil,     .NONE },
-    	SUPER         = { nil,      nil,     .NONE },     
+		SUPER         = { nil,      nil,     .NONE },     
   		THIS          = { nil,      nil,     .NONE },
 		TRUE          = { literal,  nil,     .NONE },     
   		VAR           = { nil,      nil,     .NONE },

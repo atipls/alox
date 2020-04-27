@@ -4,7 +4,7 @@
 
 # What / why:
 
-This repo contains the process of me learning the [Odin Programming Language](http://odin-lang.org/) whilst implementing Lox from the book [Crafting Interpreters](http://craftinginterpreters.com/) by @munificent
+This repo contains the process of me learning the [Odin Programming Language](http://odin-lang.org/) whilst implementing Lox from the book [Crafting Interpreters](http://craftinginterpreters.com/) by [munificent](https://github.com/munificent/)
 
 I will only implement `clox` (Chapter 14 onwards). Since I'm learning the language I'm writing the interpreter in, most of the code will still be C-style with a few things I've learned Odin has so far.
 
