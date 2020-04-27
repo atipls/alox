@@ -1,5 +1,7 @@
 # Ati's Lox Interpreter
 
+- Currently finished Chapter 19 - Strings
+
 # What / why:
 
 This repo contains the process of me learning the [Odin Programming Language](http://odin-lang.org/) whilst implementing Lox from the book [Crafting Interpreters](http://craftinginterpreters.com/) by @munificent
