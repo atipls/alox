@@ -98,7 +98,7 @@ vm_run :: proc() -> bool {
 			push(number_val(a / b));
 		case OP_MUL: 
 			a, b := pop_numbers();
-			push(number_val(a / b));
+			push(number_val(a * b));
 		case OP_EQU: push(bool_val(value_equals(pop(), pop())));
 		case OP_GTT:
 			a, b := pop_numbers();
