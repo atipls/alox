@@ -50,7 +50,7 @@ disasm_instruction :: proc(using c: ^Chunk, offs: int) -> int {
 disasm :: proc(using c: ^Chunk, name: string) {
 	fmt.printf("<=== chunk %s ===>\n", name);
 
-	for i :int = 0; i < cast(int) len(&code); {
+	for i := 0; i < len(&code); {
 		i = disasm_instruction(c, i);
 	}
 }
