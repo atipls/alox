@@ -49,14 +49,12 @@ value_add :: proc(using c: ^Chunk, v: Value) -> int {
 }
 
 value_print :: proc(v: Value) {
-	fmt.printf("[%v", v.type);
-
 	switch {
-	case is_number(v):	fmt.printf(": %v]", as_number(v));
-	case is_bool(v):	fmt.printf(": %v]", as_bool(v));
-	case is_obj(v):		object_print(v); fmt.printf("]");
-	case is_nil(v): 	fallthrough;
-	case:				fmt.printf("]");
+	case is_number(v):	fmt.printf("%v", as_number(v));
+	case is_bool(v):	fmt.printf("%v", as_bool(v));
+	case is_obj(v):		object_print(v); 
+	case is_nil(v): 	fmt.printf("nil");
+	case:				
 	}
 }
 

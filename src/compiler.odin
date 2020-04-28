@@ -76,7 +76,11 @@ compile :: proc(data: string) -> (bool, Chunk) {
 		}
 	} else {
 		advance();
-		expression();
+		
+		for !match(EOF) {
+			declaration();
+		}
+
 		consume(EOF, "end of file expected.");
 		compile_end();
 		if !parser.had_error do disasm(&ch, "compiled");
@@ -108,6 +112,17 @@ consume :: proc(what: TokenType, msg: string) {
 	error_at_current(msg);
 }
 
+check :: proc(what: TokenType) -> bool {
+	return parser.cur.what == what;
+}
+
+@(private = "file")
+match :: proc(what: TokenType) -> bool {
+	if !check(what) do return false;
+	advance();
+	return true;
+}
+
 compile_end :: proc() do emit_return();
 
 emit_byte :: proc(b: u8) do	chunk_add(current_chunk(), b, parser.prev.line);
@@ -135,12 +150,28 @@ make_constant :: proc(val: Value) -> u8 {
 }
 
 expression :: proc() {
-	precedence(Precedence.ASSIGNMENT);
+	precedence(.ASSIGNMENT);
+}
+
+declaration :: proc() {
+	statement();
+}
+
+statement :: proc() {
+	if match(.PRINT) do print_statement();
+
+}
+
+print_statement :: proc() {
+	using OpCode;
+	expression();
+	consume(.SEMICOLON, "expected ';'.");
+	emit(OP_PRN);
 }
 
 grouping :: proc() {
 	expression();
-	consume(TokenType.RIGHT_PAREN, "expected ')'.");
+	consume(.RIGHT_PAREN, "expected ')'.");
 }
 
 unary :: proc() {
@@ -149,7 +180,7 @@ unary :: proc() {
 
 	what := parser.prev.what;
 
-	precedence(Precedence.UNARY);
+	precedence(.UNARY);
 
 	#partial switch what {
 	case MINUS:	emit(OP_NEG);

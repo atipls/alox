@@ -48,12 +48,10 @@ string_copy :: proc(str: string) -> ^StringObject {
 }
 
 object_print :: proc(v: Value) {
-	fmt.printf("(%v", obj_type(v));
 	switch(obj_type(v)) {
-		case .STRING:
-			str := as_string(v).data;
-			fmt.printf(") \"%v\"", str);
-
+	case .STRING:
+		str := as_string(v).data;
+		fmt.printf("%v", str);
 	}
 }
 

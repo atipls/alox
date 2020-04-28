@@ -19,18 +19,23 @@ lex_init :: proc(data: string) {
 }
 lex_free :: proc() { strings.destroy_builder(&lex.builder); }
 
+@(private = "file")
 get :: proc(n :int = 0) -> u8 {
 	using lex;
 	ret := data[idx + n];
 	idx += 1; 
 	return ret;
 }
+@(private = "file")
 peek :: proc() -> u8 do return end() ? 0 : lex.data[lex.idx];
+@(private = "file")
 next :: proc() -> u8 {
 	if end() do return 0;
 	return lex.data[lex.idx];
 }
+@(private = "file")
 end :: proc() -> bool do return lex.idx >= len(lex.data);
+@(private = "file")
 match :: proc(c: u8) -> bool {
   if end() do return false;
   if peek() != c do return false;
@@ -39,12 +44,14 @@ match :: proc(c: u8) -> bool {
   return true;
 }
 
+@(private = "file")
 eat :: proc() -> u8 {
 	c := get();
 	strings.write_byte(&lex.builder, c);
 	return c;
 }
 
+@(private = "file")
 get_built :: proc() -> string {
 	str := strings.to_string(lex.builder);
 	strings.reset_builder(&lex.builder);

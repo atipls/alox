@@ -106,8 +106,10 @@ vm_run :: proc() -> bool {
 		case OP_LTN:
 			a, b := pop_numbers();
 			push(bool_val(a < b));
-		case OP_RET:
+		case OP_PRN:
 			value_print(pop());
+			fmt.println();
+		case OP_RET:
 			fmt.printf("\n");
 			return true;
 		}

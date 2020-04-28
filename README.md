@@ -1,6 +1,6 @@
 # Ati's Lox Interpreter
 
-- Currently finished Chapter 19 - Strings
+- Currently finished Chapter 21.1.1 - Print statements
 
 # What / why:
 

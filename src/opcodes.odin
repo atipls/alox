@@ -17,5 +17,7 @@ OpCode :: enum {
 	OP_GTT,
 	OP_LTN,
 
+	OP_PRN,
+
 	OP_RET,
 }

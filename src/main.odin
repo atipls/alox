@@ -25,7 +25,7 @@ main :: proc() {
 	data, success := os.read_entire_file(filename);
 	if !success {
 		fmt.panicf("cannot read file %v.\n", filename);
-		}
+	}
 	file := string(data);
 	interpret(file);
 
