@@ -17,6 +17,7 @@ object_alloc :: proc($T: typeid, type: ObjectType) -> ^Object {
 	obj.type = type;
 
 	obj.next = vm.objects;
+	vm.objects = obj;
 
 	return obj;
 }
@@ -95,7 +96,6 @@ object_free :: proc(obj: ^Object) {
 	switch obj.type {
 	case .STRING:
 		str := cast(^StringObject) obj;
-		delete_string(str.data);
 		free(str);
 	}
 }
