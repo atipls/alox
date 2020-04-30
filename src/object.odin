@@ -29,6 +29,7 @@ is_obj_type :: inline proc(v: Value, type: ObjectType) -> bool
 StringObject :: struct {
 	using obj: Object,
 	data: string,
+	hash: u32,
 }
 
 as_string :: inline proc(v: Value) -> ^StringObject
@@ -36,15 +37,32 @@ as_string :: inline proc(v: Value) -> ^StringObject
 is_string :: inline proc(v: Value) -> bool 
 	do return is_obj_type(v, .STRING);
 
-string_alloc :: proc(str: string) -> ^StringObject {
+
+string_hash :: proc(str: string) -> u32{
+	hash :u32 = 0x811C9DC5;
+	for i := 0; i < len(str); i += 1 {
+		hash ~= cast(u32) str[i];
+		hash *= 0x1000193;
+	}
+	return hash;
+}
+
+string_alloc :: proc(str: string, hash: u32) -> ^StringObject {
 	obj := cast(^StringObject) object_alloc(StringObject, ObjectType.STRING);
 	obj.data = str;
+	obj.hash = hash;
 	return obj;
 }
 
 string_copy :: proc(str: string) -> ^StringObject {
 	copied := strings.clone(str);
-	return string_alloc(copied);
+	hash := string_hash(str);
+	return string_alloc(copied, hash);
+}
+
+string_take :: proc(str: string) -> ^StringObject {
+	hash := string_hash(str);
+	return string_alloc(str, hash);	
 }
 
 object_print :: proc(v: Value) {

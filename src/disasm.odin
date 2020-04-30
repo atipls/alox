@@ -32,6 +32,8 @@ disasm_instruction :: proc(using c: ^Chunk, offs: int) -> int {
 	case OP_LDN: return disasm_simple("LDN", offs);
 	case OP_LDT: return disasm_simple("LDT", offs);
 	case OP_LDF: return disasm_simple("LDF", offs);
+	case OP_POP: return disasm_simple("POP", offs);
+	case OP_STG: return disasm_constant("STG", c, offs);
 	case OP_NOT: return disasm_simple("NOT", offs);
 	case OP_NEG: return disasm_simple("NEG", offs);
 	case OP_ADD: return disasm_simple("ADD", offs);

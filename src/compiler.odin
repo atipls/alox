@@ -51,6 +51,20 @@ error_at :: proc(token: ^Token, msg: string) {
   	fmt.eprintf(": %s\n", msg);
   	parser.had_error = true;
 }
+synchronize :: proc() {
+	using parser;
+	for cur.what != .EOF {
+		if prev.what == .SEMICOLON do return;
+
+		#partial switch cur.what {
+		case .CLASS, .FUN, .VAR, .FOR, .IF,
+			 .WHILE, .PRINT, .RETURN:
+			return;
+		case: // do nothing
+		}
+		advance();
+	}
+}
 
 current_chunk :: inline proc() -> ^Chunk do return chunk;
 
@@ -139,6 +153,7 @@ emit :: proc {emit_byte, emit_opcode, emit_twoop, emit_instr};
 
 emit_return :: proc() do emit(OpCode.OP_RET);
 emit_const  :: proc(val: Value) do emit(OpCode.OP_LDC, make_constant(val));
+emit_global :: proc(global: u8) do emit(OpCode.OP_STG, global);
 
 make_constant :: proc(val: Value) -> u8 {
 	index := value_add(current_chunk(), val);
@@ -153,13 +168,27 @@ expression :: proc() {
 	precedence(.ASSIGNMENT);
 }
 
+var_declaration :: proc() {
+	global := parse_variable("variable name expected.");
+	if match(.EQUAL) {
+		expression();
+	} else do emit(OpCode.OP_LDN);
+
+	consume(.SEMICOLON, "expected ';' after variable declaration.");
+
+	emit_global(global);
+}
+
 declaration :: proc() {
-	statement();
+	if match(.VAR) do var_declaration();
+	else do statement();
+
+	if parser.panic do synchronize();
 }
 
 statement :: proc() {
 	if match(.PRINT) do print_statement();
-
+	else do expression_statement();
 }
 
 print_statement :: proc() {
@@ -167,6 +196,13 @@ print_statement :: proc() {
 	expression();
 	consume(.SEMICOLON, "expected ';'.");
 	emit(OP_PRN);
+}
+
+expression_statement :: proc() {
+	using OpCode;
+	expression();
+	consume(.SEMICOLON, "expected ';'.");
+	emit(OP_POP);
 }
 
 grouping :: proc() {
@@ -288,6 +324,11 @@ init_rules :: proc() {
   	};          
 }
 
+parse_variable :: proc(msg: string) -> u8 {
+	consume(.IDENTIFIER, msg);
+	return constant_ident(&parser.prev);
+}
+
 number :: proc() {
 	value := strconv.parse_f64(parser.prev.data);
 	emit_const(number_val(value));
@@ -296,4 +337,8 @@ number :: proc() {
 constant :: proc() {
 	object := string_copy(parser.prev.data);
 	emit_const(obj_val(object));
+}
+
+constant_ident :: proc(tok: ^Token) -> u8 {
+	return make_constant(obj_val(string_copy(tok.data)));
 }

@@ -5,6 +5,10 @@ OpCode :: enum {
 	OP_LDN,
 	OP_LDT,
 	OP_LDF,
+
+	OP_POP,
+
+	OP_STG,
 	
 	OP_NOT,
 	OP_NEG,
