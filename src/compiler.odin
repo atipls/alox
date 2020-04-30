@@ -300,7 +300,7 @@ init_rules :: proc() {
   		GREATER_EQUAL = { nil,      binary,  .COMPARISON },
   		LESS          = { nil,      binary,  .COMPARISON },
   		LESS_EQUAL    = { nil,      binary,  .COMPARISON },
-  		IDENTIFIER    = { nil,      binary,  .NONE },
+  		IDENTIFIER    = { variable, binary,  .NONE },
   		STRING        = { constant, nil,     .NONE },
   		NUMBER        = { number,   nil,     .NONE },
   		AND           = { nil,      nil,     .NONE },
@@ -337,6 +337,14 @@ number :: proc() {
 constant :: proc() {
 	object := string_copy(parser.prev.data);
 	emit_const(obj_val(object));
+}
+
+variable :: proc() {
+	named_variable(&parser.prev);
+}
+
+named_variable :: proc(name: ^Token) {
+	emit(OpCode.OP_LDG, constant_ident(name));
 }
 
 constant_ident :: proc(tok: ^Token) -> u8 {

@@ -11,13 +11,13 @@ VM :: struct {
 	ip, sp: int,
 	objects: ^Object,
 	halt: bool,
-	globals: map[^StringObject]Value,
+	globals: map[u32]Value,
 	strings: map[u32]^StringObject,
 }
 vm: VM;
 
 vm_init :: proc() {
-	vm.globals = make(map[^StringObject]Value);
+	vm.globals = make(map[u32]Value);
 	vm.strings = make(map[u32]^StringObject);
 }
 
@@ -88,9 +88,14 @@ vm_run :: proc() -> bool {
 		case OP_LDF: push(bool_val(false));
 		case OP_POP: pop();
 		case OP_STG: 
-			name := read_string();
-			globals[name] = peek(0);
+			using name := read_string();
+			globals[hash] = peek(0);
 			pop();
+		case OP_LDG:
+			using name := read_string();
+			elem, ok := globals[hash];
+			if !ok do vm_error("undeclared identifier: %v\n", data);
+			push(elem);
 		case OP_NOT: push(bool_val(is_falsey(pop()))); 
 		case OP_NEG:
 			if !is_number(peek()) {

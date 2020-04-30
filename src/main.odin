@@ -3,7 +3,7 @@ package main;
 import "core:fmt";
 import "core:os";
 
-DEBUG :: true;
+DEBUG :: false;
 
 interpret :: proc(data: string) -> bool {
 	success, chunk := compile(data);

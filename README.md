@@ -1,6 +1,6 @@
 # Ati's Lox Interpreter
 
-- Currently finished Chapter 21.1.1 - Print statements
+- Currently finished Chapter 21.3 - Reading Variables
 
 # What / why:
 
