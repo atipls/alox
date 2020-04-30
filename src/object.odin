@@ -13,7 +13,6 @@ Object :: struct {
 }
 
 object_alloc :: proc($T: typeid, type: ObjectType) -> ^Object {
-	when DEBUG do fmt.printf("[ALLOC] Allocating %v\n", type);
 	obj := new(T);
 	obj.type = type;
 
@@ -58,10 +57,7 @@ string_alloc :: proc(str: string, hash: u32) -> ^StringObject {
 string_copy :: proc(str: string) -> ^StringObject {
 	hash := string_hash(str);
 	elem, ok := vm.strings[hash];
-	if ok {
-		fmt.printf("Deduplicated '%v'.\n", str);
-		return elem;
-	}
+	if ok do return elem;
 
 	copied := strings.clone(str);
 	return string_alloc(copied, hash);
@@ -69,6 +65,12 @@ string_copy :: proc(str: string) -> ^StringObject {
 
 string_take :: proc(str: string) -> ^StringObject {
 	hash := string_hash(str);
+	elem, ok := vm.strings[hash];
+	if ok {
+		delete_string(str);
+		return elem;
+	}
+
 	return string_alloc(str, hash);	
 }
 
