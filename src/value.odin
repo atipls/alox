@@ -65,7 +65,7 @@ value_equals :: proc(a: Value, b: Value) -> bool {
 	case is_number(a): 	return as_number(a) == as_number(b);
 	case is_bool(a): 	return as_bool(a) == as_bool(b);
 	case is_nil(a): 	return true;
-	case is_obj(a):		return object_equals(a, b);
+	case is_obj(a):		return as_obj(a) == as_obj(b);
 	case: 				return false;
 	}
 }
