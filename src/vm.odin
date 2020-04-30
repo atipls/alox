@@ -87,15 +87,19 @@ vm_run :: proc() -> bool {
 		case OP_LDT: push(bool_val(true));
 		case OP_LDF: push(bool_val(false));
 		case OP_POP: pop();
-		case OP_STG: 
+		case OP_DEG: 
 			using name := read_string();
-			globals[hash] = peek(0);
+			globals[hash] = peek();
 			pop();
 		case OP_LDG:
 			using name := read_string();
 			elem, ok := globals[hash];
 			if !ok do vm_error("undeclared identifier: %v\n", data);
 			push(elem);
+		case OP_STG: 
+			using name := read_string();
+			if !(hash in globals) do vm_error("undeclared identifier: %v\n", data);
+			globals[hash] = peek();
 		case OP_NOT: push(bool_val(is_falsey(pop()))); 
 		case OP_NEG:
 			if !is_number(peek()) {

@@ -25,8 +25,8 @@ Precedence :: enum {
 }
 
 ParseRule :: struct {
-	prefix: proc(),
-	infix: proc(),
+	prefix: proc(bool),
+	infix: proc(bool),
 	prec: Precedence,
 }
 
@@ -153,7 +153,7 @@ emit :: proc {emit_byte, emit_opcode, emit_twoop, emit_instr};
 
 emit_return :: proc() do emit(OpCode.OP_RET);
 emit_const  :: proc(val: Value) do emit(OpCode.OP_LDC, make_constant(val));
-emit_global :: proc(global: u8) do emit(OpCode.OP_STG, global);
+emit_global :: proc(global: u8) do emit(OpCode.OP_DEG, global);
 
 make_constant :: proc(val: Value) -> u8 {
 	index := value_add(current_chunk(), val);
@@ -205,12 +205,12 @@ expression_statement :: proc() {
 	emit(OP_POP);
 }
 
-grouping :: proc() {
+grouping :: proc(can_assign: bool) {
 	expression();
 	consume(.RIGHT_PAREN, "expected ')'.");
 }
 
-unary :: proc() {
+unary :: proc(can_assign: bool) {
 	using TokenType;
 	using OpCode;
 
@@ -225,7 +225,7 @@ unary :: proc() {
 	}
 }
 
-binary :: proc() {
+binary :: proc(can_assign: bool) {
 	using TokenType;
 	using OpCode;
 
@@ -249,7 +249,7 @@ binary :: proc() {
 	}
 }
 
-literal :: proc() {
+literal :: proc(can_assign: bool) {
 	using TokenType;
 	using OpCode;
 
@@ -268,11 +268,17 @@ precedence :: proc(prec: Precedence) {
 		error("expected expression");
 		return;
 	}
-	prefix();
+	can_assign := prec <= .ASSIGNMENT;
+	prefix(can_assign);
 
 	for prec <= get_rule(parser.cur.what).prec {
 		advance();
-		get_rule(parser.prev.what).infix();
+		get_rule(parser.prev.what).infix(can_assign);
+	}
+
+	if can_assign && match(.EQUAL) {
+		error("invalid assignment target");
+		return;
 	}
 }
 
@@ -329,22 +335,28 @@ parse_variable :: proc(msg: string) -> u8 {
 	return constant_ident(&parser.prev);
 }
 
-number :: proc() {
+number :: proc(can_assign: bool) {
 	value := strconv.parse_f64(parser.prev.data);
 	emit_const(number_val(value));
 }
 
-constant :: proc() {
+constant :: proc(can_assign: bool) {
 	object := string_copy(parser.prev.data);
 	emit_const(obj_val(object));
 }
 
-variable :: proc() {
-	named_variable(&parser.prev);
+variable :: proc(can_assign: bool) {
+	named_variable(&parser.prev, can_assign);
 }
 
-named_variable :: proc(name: ^Token) {
-	emit(OpCode.OP_LDG, constant_ident(name));
+named_variable :: proc(name: ^Token, can_assign: bool) {
+	using OpCode;
+	index := constant_ident(name);
+
+	if can_assign && match(.EQUAL) {
+		expression();
+		emit(OP_STG, index);
+	} else do emit(OP_LDG, index);
 }
 
 constant_ident :: proc(tok: ^Token) -> u8 {

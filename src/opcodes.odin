@@ -8,9 +8,10 @@ OpCode :: enum {
 
 	OP_POP,
 
-	OP_STG,
+	OP_DEG,
 	OP_LDG,
-	
+	OP_STG,
+
 	OP_NOT,
 	OP_NEG,
 	OP_ADD,

@@ -1,6 +1,6 @@
 # Ati's Lox Interpreter
 
-- Currently finished Chapter 21.3 - Reading Variables
+- Currently finished Chapter 21 - Global Variables
 
 # What / why:
 
