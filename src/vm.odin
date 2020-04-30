@@ -12,13 +12,13 @@ VM :: struct {
 	objects: ^Object,
 	halt: bool,
 	globals: map[^StringObject]Value,
-	strings: map[^StringObject]Value,
+	strings: map[u32]^StringObject,
 }
 vm: VM;
 
 vm_init :: proc() {
 	vm.globals = make(map[^StringObject]Value);
-	vm.strings = make(map[^StringObject]Value);
+	vm.strings = make(map[u32]^StringObject);
 }
 
 vm_free :: proc() {

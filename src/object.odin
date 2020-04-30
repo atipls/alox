@@ -51,12 +51,19 @@ string_alloc :: proc(str: string, hash: u32) -> ^StringObject {
 	obj := cast(^StringObject) object_alloc(StringObject, ObjectType.STRING);
 	obj.data = str;
 	obj.hash = hash;
+	vm.strings[hash] = obj;
 	return obj;
 }
 
 string_copy :: proc(str: string) -> ^StringObject {
-	copied := strings.clone(str);
 	hash := string_hash(str);
+	elem, ok := vm.strings[hash];
+	if ok {
+		fmt.printf("Deduplicated '%v'.\n", str);
+		return elem;
+	}
+
+	copied := strings.clone(str);
 	return string_alloc(copied, hash);
 }
 
