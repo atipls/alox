@@ -3,8 +3,6 @@ package main;
 import "core:fmt";
 import "core:strconv";
 
-LEX_DEBUG :: false;
-
 Parser :: struct {
 	cur, prev: Token,
 	had_error, panic: bool,
@@ -74,31 +72,19 @@ compile :: proc(data: string) -> (bool, Chunk) {
 	ch := chunk_new();
 	chunk = &ch;
 	init_rules();
+	
+	c: Compiler;
+	compiler_init(&c);
 
-	when LEX_DEBUG {
-		line := -1;
-		for true {
-			token := get_token();
-			if (token.line != line) {
-				fmt.printf("%4d ", token.line);
-				line = token.line;
-			} else {
-				fmt.printf("   | ");
-			}
-			fmt.printf("%v '%v'\n", token.what, token.data); 
-			if token.what == EOF do break;
-		}
-	} else {
-		advance();
-		
-		for !match(EOF) {
-			declaration();
-		}
+	advance();
 
-		consume(EOF, "end of file expected.");
-		compile_end();
-		if !parser.had_error do disasm(&ch, "compiled");
+	for !match(EOF) {
+		declaration();
 	}
+
+	consume(EOF, "end of file expected.");
+	compiler_end();
+	if !parser.had_error do disasm(&ch, "compiled");
 
   	lex_free();
   	return !parser.had_error, ch;
