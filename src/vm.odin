@@ -100,6 +100,12 @@ vm_run :: proc() -> bool {
 			using name := read_string();
 			if !(hash in globals) do vm_error("undeclared identifier: %v\n", data);
 			globals[hash] = peek();
+		case OP_LDL:
+			slot := read();
+			push(stack[slot]);
+		case OP_STL:
+			slot := read();
+			vm.stack[slot] = peek(0);
 		case OP_NOT: push(bool_val(is_falsey(pop()))); 
 		case OP_NEG:
 			if !is_number(peek()) {

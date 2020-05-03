@@ -15,6 +15,11 @@ disasm_constant :: proc(name: string, using c: ^Chunk, offs: int) -> int {
 	return offs + 2;
 }
 
+disasm_byte :: proc(name: string, using c: ^Chunk, offs: int) -> int {
+	idx := code[offs + 1];
+  	fmt.printf("%-16s %4d\n", name, idx);
+	return offs + 2;	
+}
 
 disasm_instruction :: proc(using c: ^Chunk, offs: int) -> int {
 	using OpCode;
@@ -36,6 +41,8 @@ disasm_instruction :: proc(using c: ^Chunk, offs: int) -> int {
 	case OP_DEG: return disasm_constant("DEG", c, offs);
 	case OP_LDG: return disasm_constant("LDG", c, offs);
 	case OP_STG: return disasm_constant("STG", c, offs);
+	case OP_LDL: return disasm_byte("LDL", c, offs);
+	case OP_STL: return disasm_byte("STL", c, offs);
 	case OP_NOT: return disasm_simple("NOT", offs);
 	case OP_NEG: return disasm_simple("NEG", offs);
 	case OP_ADD: return disasm_simple("ADD", offs);

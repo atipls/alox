@@ -12,6 +12,9 @@ OpCode :: enum {
 	OP_LDG,
 	OP_STG,
 
+	OP_LDL,
+	OP_STL,
+
 	OP_NOT,
 	OP_NEG,
 	OP_ADD,

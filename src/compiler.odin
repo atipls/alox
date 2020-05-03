@@ -28,9 +28,20 @@ ParseRule :: struct {
 	prec: Precedence,
 }
 
+Local :: struct {
+	name: Token,
+	depth: int,
+}
+
+Compiler :: struct {
+	locals: [STACK_MAX]Local,
+	local_count, depth: int,
+}
+
 parser: Parser;
 chunk: ^Chunk;
 rules: map[TokenType]ParseRule;
+compiler: ^Compiler;
 
 error_at_current :: proc(msg: string) do error_at(&parser.cur, msg); 
 error :: proc(msg: string) do error_at(&parser.prev, msg);
@@ -123,7 +134,20 @@ match :: proc(what: TokenType) -> bool {
 	return true;
 }
 
-compile_end :: proc() do emit_return();
+compiler_init :: proc(c: ^Compiler) do compiler = c;
+compiler_end :: proc() do emit_return();
+begin_scope :: proc() do compiler.depth += 1;
+end_scope :: proc() {
+	using compiler;
+	using OpCode;
+
+	depth -= 1;
+
+	for local_count > 0 && locals[local_count - 1].depth > depth {
+		emit(OP_POP);
+		local_count -= 1;
+	}
+}
 
 emit_byte :: proc(b: u8) do	chunk_add(current_chunk(), b, parser.prev.line);
 emit_opcode :: proc(op: OpCode) do chunk_add(current_chunk(), op, parser.prev.line);
@@ -139,7 +163,14 @@ emit :: proc {emit_byte, emit_opcode, emit_twoop, emit_instr};
 
 emit_return :: proc() do emit(OpCode.OP_RET);
 emit_const  :: proc(val: Value) do emit(OpCode.OP_LDC, make_constant(val));
-emit_global :: proc(global: u8) do emit(OpCode.OP_DEG, global);
+emit_global :: proc(global: u8) {
+	if compiler.depth > 0 {
+		init_variable();
+		return;
+	}
+
+	emit(OpCode.OP_DEG, global);
+} 
 
 make_constant :: proc(val: Value) -> u8 {
 	index := value_add(current_chunk(), val);
@@ -152,6 +183,13 @@ make_constant :: proc(val: Value) -> u8 {
 
 expression :: proc() {
 	precedence(.ASSIGNMENT);
+}
+
+block :: proc() {                                     
+  	for !check(.RIGHT_BRACE) && !check(.EOF) {
+		declaration();                                        
+	}
+	consume(.RIGHT_BRACE, "expected '}' after block.");  
 }
 
 var_declaration :: proc() {
@@ -173,8 +211,14 @@ declaration :: proc() {
 }
 
 statement :: proc() {
-	if match(.PRINT) do print_statement();
-	else do expression_statement();
+	switch {
+	case match(.PRINT): print_statement();
+	case match(.LEFT_BRACE): 
+		begin_scope();
+		block();
+		end_scope();
+	case: expression_statement();
+	}
 }
 
 print_statement :: proc() {
@@ -318,7 +362,16 @@ init_rules :: proc() {
 
 parse_variable :: proc(msg: string) -> u8 {
 	consume(.IDENTIFIER, msg);
+
+	declare_variable();
+	if compiler.depth > 0 do return 0;
+
 	return constant_ident(&parser.prev);
+}
+
+init_variable :: proc() {
+	using compiler;
+	locals[local_count - 1].depth = depth;
 }
 
 number :: proc(can_assign: bool) {
@@ -337,14 +390,68 @@ variable :: proc(can_assign: bool) {
 
 named_variable :: proc(name: ^Token, can_assign: bool) {
 	using OpCode;
-	index := constant_ident(name);
+
+	get_op := OP_LDG;
+	set_op := OP_STG;
+
+	index, resolved := resolve_local(name);
+	if !resolved {
+		index = constant_ident(name);
+	} else {
+		get_op = OP_LDL;
+		set_op = OP_STL;
+	}
 
 	if can_assign && match(.EQUAL) {
 		expression();
-		emit(OP_STG, index);
-	} else do emit(OP_LDG, index);
+		emit(set_op, index);
+	} else do emit(get_op, index);
 }
 
 constant_ident :: proc(tok: ^Token) -> u8 {
 	return make_constant(obj_val(string_copy(tok.data)));
+}
+
+add_local :: proc(name: ^Token) {
+	using compiler;
+	if local_count == STACK_MAX {
+		error("too many local variables.");
+		return;
+	}
+
+	local := &locals[local_count];
+	local_count += 1;
+	local.name = name^;
+	local.depth = -1;
+}
+
+resolve_local :: proc(name: ^Token) -> (u8, bool) {
+	for i := compiler.local_count - 1; i >= 0; i -= 1 {
+		local := &compiler.locals[i];
+		if name.data == local.name.data {
+			if local.depth == -1 {
+				error("cannot assign variable to itself.");
+			}
+			return cast(u8) i, true; 
+		}
+	}
+	return 0, false;
+}
+
+declare_variable :: proc() {
+	if compiler.depth == 0 do return;
+	name := &parser.prev;
+
+	for i := compiler.local_count - 1; i >= 0; i -= 1 {
+		local := &compiler.locals[i];
+		if local.depth != -1 && local.depth < compiler.depth {
+			break;
+		}
+
+		if name.data == local.name.data {
+			error("variable already declared in this scope.");
+		}
+	}
+
+	add_local(name);
 }
