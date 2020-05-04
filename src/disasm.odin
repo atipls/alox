@@ -9,27 +9,34 @@ disasm_simple :: proc(name: string, offs: int) -> int {
 
 disasm_constant :: proc(name: string, using c: ^Chunk, offs: int) -> int {
 	idx := code[offs + 1];
-  	fmt.printf("%-16s %4d '", name, idx);
-  	value_print(values[idx]);
-  	fmt.printf("'\n");
+	fmt.printf("%-16s %4d '", name, idx);
+	value_print(values[idx]);
+	fmt.printf("'\n");
 	return offs + 2;
 }
 
 disasm_byte :: proc(name: string, using c: ^Chunk, offs: int) -> int {
 	idx := code[offs + 1];
-  	fmt.printf("%-16s %4d\n", name, idx);
+	fmt.printf("%-16s %4d\n", name, idx);
 	return offs + 2;	
+}
+
+disasm_jump :: proc(name: string, using c: ^Chunk, sign: int, offs: int) -> int {
+	jump : int = cast(int) (code[offs + 1] << 8);
+	jump      |= cast(int) (code[offs + 2]);
+	fmt.printf("%-16s %04X -> %04X\n", name, offs, offs + 3 + sign * jump);
+	return offs + 3;
 }
 
 disasm_instruction :: proc(using c: ^Chunk, offs: int) -> int {
 	using OpCode;
-	fmt.printf("%4x ", offs);
+	fmt.printf("%4X ", offs);
 
 	if offs > 0 && lines[offs] == lines[offs - 1] {
-    	fmt.printf("   | "); 
-  	} else {
-    	fmt.printf("%4d ", lines[offs]); 
-  	} 
+		fmt.printf(" | "); 
+	} else {
+		fmt.printf("%4d ", lines[offs]); 
+	} 
 
 	instr := cast(OpCode) code[offs];
 	switch instr {
@@ -52,6 +59,8 @@ disasm_instruction :: proc(using c: ^Chunk, offs: int) -> int {
 	case OP_EQU: return disasm_simple("EQU", offs);
 	case OP_GTT: return disasm_simple("GTT", offs);
 	case OP_LTN: return disasm_simple("LTN", offs);
+	case OP_JMP: return disasm_jump("JMP", c, 1, offs);
+	case OP_JIF: return disasm_jump("JIF", c, 1, offs);
 	case OP_PRN: return disasm_simple("PRN", offs);
 	case OP_RET: return disasm_simple("RET", offs);
 	}

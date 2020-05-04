@@ -170,7 +170,22 @@ emit_global :: proc(global: u8) {
 	}
 
 	emit(OpCode.OP_DEG, global);
-} 
+}
+emit_jump :: proc(op: OpCode) -> u16 {
+	emit(op);
+	emit(0xFF);
+	emit(0xFF);
+	return cast(u16) len(current_chunk().code) - 2;
+}
+patch_jump :: proc(addr: u16) {
+	jump := cast(u16) len(current_chunk().code) - addr - 2;
+	if jump > 0xFFFF {
+		error("code is too big to jump over.");
+	}
+
+	current_chunk().code[addr]     = cast(u8) ((jump >> 8) & 0xFF);
+	current_chunk().code[addr + 1] = cast(u8) (jump & 0xFF);
+}
 
 make_constant :: proc(val: Value) -> u8 {
 	index := value_add(current_chunk(), val);
@@ -213,6 +228,7 @@ declaration :: proc() {
 statement :: proc() {
 	switch {
 	case match(.PRINT): print_statement();
+	case match(.IF): if_statement();
 	case match(.LEFT_BRACE): 
 		begin_scope();
 		block();
@@ -226,6 +242,23 @@ print_statement :: proc() {
 	expression();
 	consume(.SEMICOLON, "expected ';'.");
 	emit(OP_PRN);
+}
+
+if_statement :: proc() {
+	consume(.LEFT_PAREN, "expected '(' after 'if'.");
+	expression();
+	consume(.RIGHT_PAREN, "expected ')' after 'if expression'.");
+
+	then := emit_jump(.OP_JIF);
+	emit(OpCode.OP_POP);
+	statement();
+
+	elsejmp := emit_jump(.OP_JMP);
+	patch_jump(then);
+	emit(OpCode.OP_POP);
+
+	if match(.ELSE) do statement();
+	patch_jump(elsejmp);
 }
 
 expression_statement :: proc() {
@@ -291,6 +324,26 @@ literal :: proc(can_assign: bool) {
 	}
 }
 
+and :: proc(can_assign: bool) {
+	jump := emit_jump(.OP_JIF);
+
+	emit(OpCode.OP_POP);
+	precedence(.AND);
+
+	patch_jump(jump);
+}
+
+or :: proc(can_assign: bool) {
+	elsejmp := emit_jump(.OP_JIF);
+	endjmp  := emit_jump(.OP_JMP);
+
+	patch_jump(elsejmp);
+	emit(OpCode.OP_POP);
+
+	precedence(.OR);
+	patch_jump(endjmp);
+}
+
 precedence :: proc(prec: Precedence) {
 	advance();
 	prefix := get_rule(parser.prev.what).prefix;
@@ -339,7 +392,7 @@ init_rules :: proc() {
   		IDENTIFIER    = { variable, binary,  .NONE },
   		STRING        = { constant, nil,     .NONE },
   		NUMBER        = { number,   nil,     .NONE },
-  		AND           = { nil,      nil,     .NONE },
+  		AND           = { nil,      and,     .NONE },
   		CLASS         = { nil,      nil,     .NONE },
   		ELSE          = { nil,      nil,     .NONE },
   		FALSE         = { literal,  nil,     .NONE },
@@ -347,7 +400,7 @@ init_rules :: proc() {
   		FUN           = { nil,      nil,     .NONE },
   		IF            = { nil,      nil,     .NONE },
   		NIL           = { literal,  nil,     .NONE },
-  		OR            = { nil,      nil,     .NONE },
+  		OR            = { nil,      or,      .NONE },
   		PRINT         = { nil,      nil,     .NONE },
   		RETURN        = { nil,      nil,     .NONE },
 		SUPER         = { nil,      nil,     .NONE },     

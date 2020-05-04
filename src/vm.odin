@@ -51,6 +51,8 @@ vm_run :: proc() -> bool {
 		ip += 1;
 		return b;
 	}
+	read_short :: proc() -> u16 do return (cast(u16) (read() << 8) | cast(u16) read());
+
 	constant :: proc() -> Value do return chunk.values[read()];
 	read_string :: proc() -> ^StringObject do return as_string(constant());
 
@@ -137,6 +139,10 @@ vm_run :: proc() -> bool {
 		case OP_LTN:
 			a, b := pop_numbers();
 			push(bool_val(a < b));
+		case OP_JMP: ip += cast(int) read_short();
+		case OP_JIF:
+			offset := read_short();
+			if is_falsey(peek(0)) do ip += cast(int) offset;
 		case OP_PRN:
 			value_print(pop());
 			fmt.println();

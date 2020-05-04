@@ -1,10 +1,18 @@
-var breakfast = "beignets";
-var beverage = "cafe au lait";
-breakfast = "beignets with " + beverage;
+// https://github.com/munificent/craftinginterpreters/blob/master/test/if/if.lox
 
-{
-	var a = "test";
-	print a;
-}
+// Evaluate the 'then' expression if the condition is true.
+if (true) print "good"; // expect: good
 
-print breakfast;
+if (false or true) print "false or true"; // expect: good
+
+if (false and true) print "false and true";
+
+// Allow block body.
+if (true) { print "block"; } // expect: block
+
+// Evaluate "else"
+if (false) {} else print "else"; // expect: else
+
+// Assignment in if condition.
+var a = false;
+if (a = true) print a; // expect: true

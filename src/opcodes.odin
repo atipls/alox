@@ -1,32 +1,35 @@
 package main;
 
 OpCode :: enum {
-	OP_LDC,
-	OP_LDN,
-	OP_LDT,
-	OP_LDF,
+	OP_LDC, // load constant
+	OP_LDN, // load nil
+	OP_LDT, // load true
+	OP_LDF, // load false
 
-	OP_POP,
+	OP_POP, // pop value
 
-	OP_DEG,
-	OP_LDG,
-	OP_STG,
+	OP_DEG, // define global
+	OP_LDG, // load global
+	OP_STG, // store global
 
-	OP_LDL,
-	OP_STL,
+	OP_LDL, // load local
+	OP_STL, // store local
 
-	OP_NOT,
-	OP_NEG,
-	OP_ADD,
-	OP_SUB,
-	OP_DIV,
-	OP_MUL,
+	OP_NOT, // logical not
+	OP_NEG, // negate value
+	OP_ADD, // binary add
+	OP_SUB, // binary sub
+	OP_DIV, // binary div
+	OP_MUL, // binary mul
 
-	OP_EQU,
-	OP_GTT,
-	OP_LTN,
+	OP_EQU, // logical equals
+	OP_GTT, // logical greater than
+	OP_LTN, // logical less than
 
-	OP_PRN,
+	OP_JMP, // unconditional jump
+	OP_JIF, // jump if false
 
-	OP_RET,
+	OP_PRN, // print value
+
+	OP_RET, // return from function or from the interpreter
 }
