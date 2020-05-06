@@ -242,6 +242,7 @@ statement :: proc() {
 	case match(.PRINT): print_statement();
 	case match(.IF): if_statement();
 	case match(.WHILE): while_statement();
+	case match(.FOR): for_statement();
 	case match(.LEFT_BRACE): 
 		begin_scope();
 		block();
@@ -290,6 +291,54 @@ while_statement :: proc() {
 
 	patch_jump(exitjmp);
 	emit(OpCode.OP_POP);
+}
+
+for_statement :: proc() {
+	begin_scope();
+
+	consume(.LEFT_PAREN, "expected '(' after 'while'.");
+
+	if match(.SEMICOLON) {}
+	else if match(.VAR) {
+		var_declaration();
+	} else {
+		expression_statement();		
+	}
+
+	start := len(current_chunk().code);
+	exit :u16 = 0;
+
+	if !match(.SEMICOLON) {
+		expression();
+		consume(.SEMICOLON, "expected ';' after 'for condition'");
+
+		exit = emit_jump(.OP_JIF);
+		emit(OpCode.OP_POP);
+	}
+
+	if !match(.RIGHT_PAREN) {
+		bodyjmp := emit_jump(.OP_JMP);
+
+		incstart := len(current_chunk().code);
+		expression();
+		emit(OpCode.OP_POP);
+
+		consume(.RIGHT_PAREN, "expected ')' after 'for statement'.");
+
+		emit_loop(start);
+		start = incstart;
+		patch_jump(bodyjmp);
+	}
+
+	statement();
+	emit_loop(start);
+
+	if exit != 0 {
+		patch_jump(exit);
+		emit(OpCode.OP_POP);
+	}
+
+	end_scope();
 }
 
 expression_statement :: proc() {

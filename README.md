@@ -1,6 +1,6 @@
 # Ati's Lox Interpreter
 
-- Currently finished Chapter 23.3 - While Statements
+- Currently finished Chapter 23 - Jumping Back and Forth
 
 # What / why:
 
