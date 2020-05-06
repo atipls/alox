@@ -140,6 +140,7 @@ vm_run :: proc() -> bool {
 			a, b := pop_numbers();
 			push(bool_val(a < b));
 		case OP_JMP: ip += cast(int) read_short();
+		case OP_JBK: ip -= cast(int) read_short();
 		case OP_JIF:
 			offset := read_short();
 			if is_falsey(peek(0)) do ip += cast(int) offset;

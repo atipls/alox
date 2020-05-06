@@ -187,6 +187,18 @@ patch_jump :: proc(addr: u16) {
 	current_chunk().code[addr + 1] = cast(u8) (jump & 0xFF);
 }
 
+emit_loop :: proc(start: int) {
+	emit(OpCode.OP_JBK);
+
+	offset := len(current_chunk().code) - start + 2;
+	if offset > 0xFFFF {
+		error("code is too big to loop over.");		
+	}
+
+	emit(cast(u8) ((offset >> 8) & 0xFF));
+	emit(cast(u8) (offset & 0xFF));
+}
+
 make_constant :: proc(val: Value) -> u8 {
 	index := value_add(current_chunk(), val);
 	if index > 0xFF {
@@ -200,9 +212,9 @@ expression :: proc() {
 	precedence(.ASSIGNMENT);
 }
 
-block :: proc() {                                     
+block :: proc() {
   	for !check(.RIGHT_BRACE) && !check(.EOF) {
-		declaration();                                        
+		declaration();
 	}
 	consume(.RIGHT_BRACE, "expected '}' after block.");  
 }
@@ -229,6 +241,7 @@ statement :: proc() {
 	switch {
 	case match(.PRINT): print_statement();
 	case match(.IF): if_statement();
+	case match(.WHILE): while_statement();
 	case match(.LEFT_BRACE): 
 		begin_scope();
 		block();
@@ -259,6 +272,24 @@ if_statement :: proc() {
 
 	if match(.ELSE) do statement();
 	patch_jump(elsejmp);
+}
+
+while_statement :: proc() {
+	start := len(current_chunk().code);
+
+	consume(.LEFT_PAREN, "expected '(' after 'while'.");
+	expression();
+	consume(.RIGHT_PAREN, "expected ')' after 'while expression'.");
+
+	exitjmp := emit_jump(.OP_JIF);
+	
+	emit(OpCode.OP_POP);
+	statement();
+
+	emit_loop(start);
+
+	patch_jump(exitjmp);
+	emit(OpCode.OP_POP);
 }
 
 expression_statement :: proc() {

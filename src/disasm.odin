@@ -60,6 +60,7 @@ disasm_instruction :: proc(using c: ^Chunk, offs: int) -> int {
 	case OP_GTT: return disasm_simple("GTT", offs);
 	case OP_LTN: return disasm_simple("LTN", offs);
 	case OP_JMP: return disasm_jump("JMP", c, 1, offs);
+	case OP_JBK: return disasm_jump("JBK", c, -1, offs);
 	case OP_JIF: return disasm_jump("JIF", c, 1, offs);
 	case OP_PRN: return disasm_simple("PRN", offs);
 	case OP_RET: return disasm_simple("RET", offs);

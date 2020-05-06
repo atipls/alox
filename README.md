@@ -1,6 +1,6 @@
 # Ati's Lox Interpreter
 
-- Currently finished Chapter 23.2 - Logical Operators
+- Currently finished Chapter 23.3 - While Statements
 
 # What / why:
 

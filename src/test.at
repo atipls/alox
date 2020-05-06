@@ -1,18 +1,16 @@
-// https://github.com/munificent/craftinginterpreters/blob/master/test/if/if.lox
+// Single-expression body.
+var c = 0;
+while (c < 3) print c = c + 1;
+// expect: 1
+// expect: 2
+// expect: 3
 
-// Evaluate the 'then' expression if the condition is true.
-if (true) print "good"; // expect: good
-
-if (false or true) print "false or true"; // expect: good
-
-if (false and true) print "false and true";
-
-// Allow block body.
-if (true) { print "block"; } // expect: block
-
-// Evaluate "else"
-if (false) {} else print "else"; // expect: else
-
-// Assignment in if condition.
-var a = false;
-if (a = true) print a; // expect: true
+// Block body.
+var a = 0;
+while (a < 3) {
+  print a;
+  a = a + 1;
+}
+// expect: 0
+// expect: 1
+// expect: 2

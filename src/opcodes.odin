@@ -27,6 +27,7 @@ OpCode :: enum {
 	OP_LTN, // logical less than
 
 	OP_JMP, // unconditional jump
+	OP_JBK, // unconditional jump backwards
 	OP_JIF, // jump if false
 
 	OP_PRN, // print value
